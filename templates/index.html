@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BUJJI — AI Assistant</title>
+    <meta name="description" content="BUJJI - Your Intelligent AI Companion powered by Gemini.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Instrument+Serif:ital@0;1&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/tokyo-night-dark.min.css">
+</head>
+
+<body>
+    <!-- Background -->
+    <div class="bg-grid"></div>
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
+    <div class="bg-orb orb-3"></div>
+    <canvas id="particleCanvas"></canvas>
+
+    <!-- BUJJI Car Animation Overlay (zooms on answer) -->
+    <div class="bujji-car-flyby" id="bujjiCarFlyby">
+        <img src="{{ url_for('static', filename='images/1.png') }}" alt="BUJJI" class="flyby-img">
+    </div>
+
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <span class="logo-pulse"></span>
+                        <svg viewBox="0 0 32 32" fill="none">
+                            <circle cx="16" cy="16" r="14" stroke="currentColor" stroke-width="1.5" />
+                            <path d="M10 16 L16 10 L22 16 L16 22 Z" fill="currentColor" opacity="0.8" />
+                            <circle cx="16" cy="16" r="3" fill="currentColor" />
+                        </svg>
+                    </div>
+                    <div class="logo-text">
+                        <span class="logo-name">BUJJI</span>
+                        <span class="logo-tagline">AI Assistant</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <button class="new-chat-btn" id="newChatBtn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 5v14M5 12h14" />
+                    </svg>
+                    New Conversation
+                </button>
+            </div>
+
+            <div class="sidebar-section">
+                <div class="section-label">Capabilities</div>
+                <div class="capability-list">
+                    <div class="capability-item">
+                        <div class="cap-icon edu">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="cap-title">Education</div>
+                            <div class="cap-desc">Learn anything</div>
+                        </div>
+                    </div>
+                    <div class="capability-item">
+                        <div class="cap-icon dev">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="16 18 22 12 16 6" />
+                                <polyline points="8 6 2 12 8 18" />
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="cap-title">Development</div>
+                            <div class="cap-desc">Code & debug</div>
+                        </div>
+                    </div>
+                    <div class="capability-item">
+                        <div class="cap-icon res">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="11" cy="11" r="8" />
+                                <path d="m21 21-4.35-4.35" />
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="cap-title">Research</div>
+                            <div class="cap-desc">Deep analysis</div>
+                        </div>
+                    </div>
+                    <div class="capability-item">
+                        <div class="cap-icon cre">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 20h9" />
+                                <path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <div class="cap-title">Creative</div>
+                            <div class="cap-desc">Write & create</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-footer">
+                <div class="model-badge">
+                    <div class="model-dot"></div>
+                    <span>Gemini 2.5 Flash</span>
+                </div>
+                <div class="message-counter" id="msgCounter">0 messages</div>
+            </div>
+        </aside>
+
+        <!-- Main Chat Area -->
+        <main class="chat-main">
+            <!-- Header -->
+            <header class="chat-header">
+                <button class="sidebar-toggle" id="sidebarToggle">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 12h18M3 6h18M3 18h18" />
+                    </svg>
+                </button>
+                <div class="header-center">
+                    <div class="status-indicator">
+                        <div class="status-dot"></div>
+                        <span>BUJJI is online</span>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <button class="icon-btn" id="clearBtn" title="Clear conversation">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a1 1 0 011-1h4a1 1 0 011 1v2" />
+                        </svg>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Messages -->
+            <div class="messages-container" id="messagesContainer">
+                <!-- Welcome Screen -->
+                <div class="welcome-screen" id="welcomeScreen">
+                    <!-- BUJJI characters positioned on sides using 1.png -->
+                    <div class="bujji-scene">
+                        <img src="{{ url_for('static', filename='images/1.png') }}" alt="BUJJI Car and Robot"
+                            class="bujji-scene-img" id="bujjiSceneImg">
+                    </div>
+                    <!-- Glowing horizontal line -->
+                    <div class="glow-line"></div>
+
+                    <div class="welcome-content">
+                        <div class="welcome-icon">
+                            <div class="icon-rings">
+                                <div class="ring ring-1"></div>
+                                <div class="ring ring-2"></div>
+                                <div class="ring ring-3"></div>
+                            </div>
+                            <svg viewBox="0 0 64 64" fill="none">
+                                <circle cx="32" cy="32" r="28" stroke="currentColor" stroke-width="2" />
+                                <path d="M20 32 L32 20 L44 32 L32 44 Z" fill="currentColor" opacity="0.7" />
+                                <circle cx="32" cy="32" r="6" fill="currentColor" />
+                            </svg>
+                        </div>
+                        <h1 class="welcome-title">Hello, I'm <em>BUJJI</em></h1>
+                        <p class="welcome-subtitle">Your Intelligent AI Companion</p>
+                        <p class="welcome-desc">Ask me anything — from complex code to creative writing, research to
+                            calculations. I'm here to help.</p>
+
+                        <div class="suggestion-grid">
+                            <button class="suggestion-card"
+                                data-prompt="Explain how neural networks learn using a simple analogy">
+                                <div class="sug-icon">🧠</div>
+                                <div class="sug-text">Explain neural networks with an analogy</div>
+                            </button>
+                            <button class="suggestion-card"
+                                data-prompt="Write a Python function to find all prime numbers up to n using the Sieve of Eratosthenes">
+                                <div class="sug-icon">💻</div>
+                                <div class="sug-text">Write a prime number sieve in Python</div>
+                            </button>
+                            <button class="suggestion-card"
+                                data-prompt="What are the key differences between REST and GraphQL APIs?">
+                                <div class="sug-icon">🔍</div>
+                                <div class="sug-text">REST vs GraphQL differences</div>
+                            </button>
+                            <button class="suggestion-card"
+                                data-prompt="Write a short sci-fi story about an AI that discovers it's dreaming">
+                                <div class="sug-icon">✨</div>
+                                <div class="sug-text">Sci-fi story: AI that dreams</div>
+                            </button>
+                        </div>
+
+                        <div class="welcome-input-hint">Ask BUJJI anything...</div>
+                    </div>
+                </div>
+
+                <!-- Messages will be appended here -->
+                <div class="messages-list" id="messagesList"></div>
+            </div>
+
+            <!-- Input Area -->
+            <div class="input-area">
+                <div class="input-wrapper">
+                    <textarea id="messageInput" placeholder="Ask BUJJI anything..." rows="1"
+                        maxlength="4000"></textarea>
+                    <div class="input-actions">
+                        <div class="char-count" id="charCount">0/4000</div>
+                        <button class="send-btn" id="sendBtn" disabled>
+                            <svg class="send-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.5">
+                                <path d="M22 2L11 13M22 2L15 22 11 13 2 9l20-7z" />
+                            </svg>
+                            <div class="btn-ripple"></div>
+                        </button>
+                    </div>
+                </div>
+                <div class="input-footer">
+                    <span>Press <kbd>Enter</kbd> to send, <kbd>Shift+Enter</kbd> for new line, <kbd>Esc</kbd> to
+                        stop</span>
+                    <span class="typing-indicator" id="typingIndicator" style="display:none">
+                        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+                        BUJJI is thinking
+                    </span>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+    <script src="{{ url_for('static', filename='js/particles.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+
+</html>

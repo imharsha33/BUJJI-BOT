@@ -17,8 +17,18 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'your-secret-key-change-in-production')
 
-# Configure the new google-genai client
-client = genai.Client(api_key=os.environ.get('GOOGLE_API_KEY'))
+# ============ GOOGLE API KEY VALIDATION ============
+_api_key = os.environ.get('GOOGLE_API_KEY', '').strip()
+if not _api_key:
+    raise EnvironmentError(
+        "\n\n❌ GOOGLE_API_KEY is missing!\n"
+        "   • Locally: add it to your .env file as GOOGLE_API_KEY=your_key\n"
+        "   • On Render: go to Dashboard → your service → Environment → Add Variable\n"
+        "   Get a free key at: https://aistudio.google.com/app/apikey\n"
+    )
+
+# Configure the google-genai client
+client = genai.Client(api_key=_api_key)
 
 SYSTEM_PROMPT = """You are BUJJI, a world-class AI assistant. Follow these rules strictly:
 

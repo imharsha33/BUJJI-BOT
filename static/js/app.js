@@ -33,9 +33,15 @@
     // State
     let messageCount = 0;
     let isLoading = false;
-    let sidebarOpen = window.innerWidth > 768;
+    const isMobile = () => window.innerWidth <= 768;
+    let sidebarOpen = !isMobile(); // closed on mobile, open on desktop
     let currentAbortController = null;
     let lastUserMessage = '';
+
+    // Apply correct initial sidebar state
+    if (!isMobile()) {
+        sidebar.classList.add('open');
+    }
 
     // Sidebar overlay for mobile
     const overlay = document.createElement('div');
@@ -455,9 +461,16 @@
     }
 
     window.addEventListener('resize', () => {
-        if (window.innerWidth > 768) {
+        if (!isMobile()) {
+            // Desktop: always show sidebar, remove overlay
             overlay.classList.remove('active');
-            sidebar.classList.remove('open');
+            sidebar.classList.add('open');
+            sidebarOpen = true;
+        } else {
+            // Mobile: close sidebar on resize to mobile
+            if (sidebarOpen) {
+                closeSidebar();
+            }
         }
     });
 

@@ -78,10 +78,18 @@
     });
 
     // ============ SEND MESSAGE ============
-    sendBtn.addEventListener('click', sendMessage);
+    // Use arrow function wrapper — passing sendMessage directly would cause
+    // the PointerEvent/MouseEvent to leak in as messageOverride on mobile taps!
+    sendBtn.addEventListener('click', () => sendMessage());
 
     function sendMessage(messageOverride) {
-        const text = messageOverride || messageInput.value.trim();
+        // Guard: only accept a plain non-empty string as an override.
+        // If called from a click handler that leaked an Event object, ignore it.
+        const override = (typeof messageOverride === 'string' && messageOverride.trim())
+            ? messageOverride.trim()
+            : null;
+
+        const text = override || messageInput.value.trim();
         if (!text || isLoading) return;
 
         lastUserMessage = text;
@@ -94,7 +102,7 @@
             setTimeout(() => { welcomeScreen.style.display = 'none'; }, 300);
         }
 
-        if (!messageOverride) {
+        if (!override) {
             addMessage('user', text);
             messageInput.value = '';
             messageInput.style.height = 'auto';

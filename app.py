@@ -119,10 +119,12 @@ def index():
 @app.route('/api/chat', methods=['POST'])
 def chat():
     """Streaming chat endpoint using Server-Sent Events (SSE)"""
-    data = request.json
-    user_message = data.get('message', '').strip()
+    # Safely parse JSON — request.json can be None on some mobile browsers
+    # if the Content-Type header isn't set correctly
+    data = request.get_json(silent=True, force=True) or {}
+    user_message = str(data.get('message', '') or '').strip()
     session_id = session.get('session_id', str(uuid.uuid4()))
-    
+
     if not user_message:
         return jsonify({'error': 'Empty message'}), 400
 

@@ -112,12 +112,22 @@
     }
 
     function streamFromAPI(url, body, signal) {
+        // Ensure message is always a plain string (fixes Android Chrome edge cases)
+        const payload = JSON.stringify({
+            ...body,
+            message: body.message != null ? String(body.message) : undefined
+        });
+
         fetch(url, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(body),
+            headers: {
+                'Content-Type': 'application/json; charset=utf-8',
+                'Accept': 'text/event-stream'
+            },
+            body: payload,
             signal: signal
         })
+
             .then(response => {
                 if (!response.ok) throw new Error('Network error');
 
